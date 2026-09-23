@@ -73,9 +73,39 @@ class Alumno(models.Model):
         return reverse('alumno-detail', args=[str(self.matricula)])
 
 
+class Profesor(models.Model):
+    """Modelo que representa a un profesor de la institución."""
+    numero_empleado = models.CharField(
+        max_length=20, 
+        unique=True, 
+        primary_key=True,
+        help_text="Número de nómina o identificador del docente"
+    )
+    nombre = models.CharField(max_length=100)
+    apellidos = models.CharField(max_length=150)
+    email = models.EmailField(unique=True, help_text="Correo institucional")
+    especialidad = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Ej. Ingeniería en Sistemas Computacionales, Ciencias Básicas"
+    )
+
+    class Meta:
+        ordering = ['apellidos', 'nombre']
+        verbose_name_plural = "Profesores"
+
+    def __str__(self):
+        return f"{self.nombre} {self.apellidos}"
+
+    def get_absolute_url(self):
+        return reverse('profesor-detail', args=[str(self.numero_empleado)])
+
+
 class Grupo(models.Model):
     """Modelo que representa un grupo específico para una materia."""
     materia = models.ForeignKey('Materia', on_delete=models.CASCADE, related_name='grupos')
+    profesor = models.ForeignKey('Profesor', on_delete=models.SET_NULL, null=True, blank=True, related_name='grupos')
     clave = models.CharField(max_length=50)
     cupo = models.PositiveIntegerField()
     numAlumnos = models.PositiveIntegerField(
@@ -105,7 +135,6 @@ class Calificacion(models.Model):
     alumno = models.ForeignKey('Alumno', on_delete=models.CASCADE)
     grupo = models.ForeignKey('Grupo', on_delete=models.CASCADE)
     
-    # Campo extraído por lógica de la clase de asociación, aunque el diagrama UML solo muestra la caja con el nombre
     calificacion_final = models.DecimalField(
         max_digits=5, 
         decimal_places=2, 
